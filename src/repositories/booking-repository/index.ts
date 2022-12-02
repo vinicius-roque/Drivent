@@ -1,11 +1,19 @@
 import { prisma } from "@/config";
 
-async function findBookings() {
-  return prisma.booking.findMany();
+async function findBooking(userId: number) {
+  return prisma.booking.findFirst({
+    where: {
+      userId
+    },
+    select: {
+      id: true,
+      Room: true
+    }
+  });
 }
 
 const bookingRepository = {
-  findBookings
+  findBooking
 };
 
 export default bookingRepository;

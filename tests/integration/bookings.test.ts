@@ -13,8 +13,9 @@ import {
   createTicket,
   createTicketTypeWithHotel,
   createUser,
+  createBooking,
+  createTicketType
 } from "../factories";
-import { createBooking } from "../factories/bookings-factory";
 
 beforeAll(async () => {
   await init();
@@ -55,12 +56,11 @@ describe("GET /booking", () => {
       const user = await createUser();
       const token = await generateValidToken(user);
       const enrollment = await createEnrollmentWithAddress(user);
-      const ticketType = await createTicketTypeWithHotel();
+      const ticketType = await createTicketType();
       const ticket = await createTicket(enrollment.id, ticketType.id, TicketStatus.PAID);
       const payment = await createPayment(ticket.id, ticketType.price);
       const hotel = await createHotel();
       const room = await createRoomWithHotelId(hotel.id);
-      const booking = await createBooking(user.id, room.id);
 
       const response = await server.get("/booking").set("Authorization", `Bearer ${token}`);
 
@@ -82,9 +82,7 @@ describe("GET /booking", () => {
 
       expect(response.status).toBe(httpStatus.OK);
       expect(response.body).toEqual({
-        ...booking,
-        createdAt: booking.createdAt.toISOString(),
-        updatedAt: booking.updatedAt.toISOString(),
+        id: booking.id,
         Room: {
           ...room,
           createdAt: room.createdAt.toISOString(),
