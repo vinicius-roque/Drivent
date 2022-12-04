@@ -14,3 +14,7 @@ export async function getBookings(req: AuthenticatedRequest, res: Response) {
     return res.sendStatus(httpStatus.NOT_FOUND);
   }
 }
+
+export async function insertBooking(req: AuthenticatedRequest, res: Response) {
+  res.send("Ok");
+}
