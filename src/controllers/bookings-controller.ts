@@ -31,3 +31,21 @@ export async function insertBooking(req: AuthenticatedRequest, res: Response) {
     return res.sendStatus(httpStatus.FORBIDDEN);
   }
 }
+
+export async function updateBooking(req: AuthenticatedRequest, res: Response) {
+  const { userId } = req;
+  const { roomId } = req.body;
+  const { bookingId } = req.params;
+
+  if (!roomId) {
+    return res.sendStatus(httpStatus.NOT_FOUND);
+  }
+
+  try {
+    const booking = await bookingService.putBookings(Number(bookingId), userId, roomId);
+
+    return res.status(httpStatus.OK).send({ bookingId: booking.id });
+  } catch (error) {
+    return res.sendStatus(httpStatus.FORBIDDEN);
+  }
+}

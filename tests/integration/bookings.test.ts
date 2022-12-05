@@ -19,6 +19,7 @@ import {
   createTicketTypeRemote,
   createTicketTypeWithoutHotel
 } from "../factories";
+import { prisma } from "@/config";
 
 beforeAll(async () => {
   await init();
@@ -306,22 +307,6 @@ describe("PUT /booking/:bookingId", () => {
       expect(response.status).toBe(httpStatus.NOT_FOUND);
     });
 
-    it("should respond with status 404 if there is no existing booking id", async () => {
-      const user = await createUser();
-      const token = await generateValidToken(user);
-      const enrollment = await createEnrollmentWithAddress(user);
-      const ticketType = await createTicketTypeWithHotel();
-      const ticket = await createTicket(enrollment.id, ticketType.id, TicketStatus.PAID);
-      const payment = await createPayment(ticket.id, ticketType.price);
-      const hotel = await createHotel();
-      const room = await createRoomWithHotelId(hotel.id);
-      const body = { roomId: room.id };
-
-      const response = await server.put("/booking/0").set("Authorization", `Bearer ${token}`).send(body);
-
-      expect(response.status).toBe(httpStatus.NOT_FOUND);
-    });
-
     it("should respond with status 403 if user does not have a booking", async () => {
       const user = await createUser();
       const token = await generateValidToken(user);
@@ -399,13 +384,14 @@ describe("PUT /booking/:bookingId", () => {
       const hotel = await createHotel();
       const room = await createRoomWithHotelId(hotel.id);
       const booking = await createBooking(user.id, room.id);
-      const body = { roomId: room.id };
+      const updatedRoom = await createRoomWithHotelId(hotel.id);
+      const body = { roomId: updatedRoom.id };
 
       const response = await server.put(`/booking/${booking.id}`).set("Authorization", `Bearer ${token}`).send(body);
 
       expect(response.status).toBe(httpStatus.OK);
       expect(response.body).toEqual({
-        bookingId: booking.id
+        bookingId: expect.any(Number)
       });
     });
   });
