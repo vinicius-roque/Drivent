@@ -1,6 +1,7 @@
-import { notFoundError } from "@/errors";
+import { notFoundError, forbiddenError } from "@/errors";
 import bookingRepository from "@/repositories/booking-repository";
-import { Response } from "express";
+import hotelRepository from "@/repositories/hotel-repository";
+import hotelService from "../hotels-service";
 
 async function getBookings(userId: number) {
   const booking = await bookingRepository.findBooking(userId);
@@ -12,8 +13,23 @@ async function getBookings(userId: number) {
   return booking;
 }
 
-async function postBooking(res: Response) {
-  res.send("Ok");
+async function postBooking(userId: number, roomId: number) {
+  await hotelService.getHotels(userId);
+
+  const room = await hotelRepository.findRoomsById(roomId);
+  if (!room) {
+    throw notFoundError();
+  }
+
+  const bookings = await bookingRepository.getBookingsById(roomId);
+  const existingBooking = await bookingRepository.findBooking(userId);
+  if (bookings.length >= room.capacity || existingBooking) {
+    throw forbiddenError();
+  }
+
+  const booking = await bookingRepository.postBooking(userId, roomId);
+
+  return booking;
 }
 
 const bookingService = {

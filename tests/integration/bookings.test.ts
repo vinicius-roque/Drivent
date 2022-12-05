@@ -5,6 +5,7 @@ import * as jwt from "jsonwebtoken";
 import supertest from "supertest";
 import { cleanDb, generateValidToken } from "../helpers";
 import { TicketStatus } from "@prisma/client";
+import { prisma } from "@/config";
 import {
   createEnrollmentWithAddress,
   createHotel,
@@ -16,7 +17,8 @@ import {
   createBooking,
   createTicketType,
   createRoomWithoutSpace,
-  createTicketTypeRemote
+  createTicketTypeRemote,
+  createTicketTypeWithoutHotel
 } from "../factories";
 
 beforeAll(async () => {
@@ -181,7 +183,7 @@ describe("POST /booking", () => {
       const user = await createUser();
       const token = await generateValidToken(user);
       const enrollment = await createEnrollmentWithAddress(user);
-      const ticketType = await createTicketTypeWithHotel();
+      const ticketType = await createTicketTypeWithoutHotel();
       const ticket = await createTicket(enrollment.id, ticketType.id, TicketStatus.PAID);
       const payment = await createPayment(ticket.id, ticketType.price);
       const hotel = await createHotel();
@@ -235,14 +237,13 @@ describe("POST /booking", () => {
       const payment = await createPayment(ticket.id, ticketType.price);
       const hotel = await createHotel();
       const room = await createRoomWithHotelId(hotel.id);
-      const booking = await createBooking(user.id, room.id);
       const body = { roomId: room.id };
 
       const response = await server.post("/booking").set("Authorization", `Bearer ${token}`).send(body);
 
       expect(response.status).toBe(httpStatus.OK);
       expect(response.body).toEqual({
-        bookingId: booking.id
+        bookingId: expect.any(Number)
       });
     });
   });
